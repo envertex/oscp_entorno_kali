@@ -21,7 +21,7 @@ echo "[+] Iniciando instalación desde: $BASE_DIR"
 # =============================================
 echo "[+] Limpiando HOME (manteniendo carpetas clave)..."
 
-KEEP_DIRS=("Desktop" "Downloads" "Pictures" "CTF")
+KEEP_DIRS=("Desktop" "Downloads" "Pictures" "CTF" "OffSec")
 
 for dir in "$HOME"/* "$HOME"/.*; do
   name="$(basename "$dir")"
