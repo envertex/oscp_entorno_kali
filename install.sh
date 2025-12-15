@@ -52,7 +52,6 @@ done
 echo "[+] Copiando contenido de home/ → \$HOME"
 
 cp -a "$BASE_DIR/home/." "$HOME/"
-cp -f "$BASE_DIR/home/.zshrc" "$HOME/.zshrc"
 # =============================================
 # 3. COPIAR CONFIG
 # =============================================
@@ -116,6 +115,7 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting \
 if ! grep -q "zsh-autosuggestions" "$HOME/.zshrc"; then
   sed -i 's/^plugins=(/plugins=(zsh-autosuggestions zsh-syntax-highlighting /' "$HOME/.zshrc"
 fi
+cp -f "$BASE_DIR/home/.zshrc" "$HOME/.zshrc"
 
 # =============================================
 # 7. PERMISOS
