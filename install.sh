@@ -116,7 +116,7 @@ if ! grep -q "zsh-autosuggestions" "$HOME/.zshrc"; then
   sed -i 's/^plugins=(/plugins=(zsh-autosuggestions zsh-syntax-highlighting /' "$HOME/.zshrc"
 fi
 cp -f "$BASE_DIR/home/.zshrc" "$HOME/.zshrc"
-
+source "$HOME/.zshrc"
 # =============================================
 # 7. PERMISOS
 # =============================================
