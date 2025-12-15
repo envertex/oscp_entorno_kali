@@ -2,20 +2,81 @@
 set -e
 
 # =============================================
-#   ZSH + OH-MY-ZSH + PLUGINS + KITTY (KALI)
-#   Author: g3narin
+#        DOTFILES INSTALLER (KALI / XFCE)
+#        Author: g3narin
 # =============================================
 
-# --------- NO ROOT ---------
+# ---------- NO ROOT ----------
 if [[ $EUID -eq 0 ]]; then
   echo "[!] No ejecutes este script como root"
   exit 1
 fi
 
+BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+echo "[+] Iniciando instalación desde: $BASE_DIR"
+
+# =============================================
+# 1. LIMPIEZA DE HOME
+# =============================================
+echo "[+] Limpiando HOME (manteniendo carpetas clave)..."
+
+KEEP_DIRS=("Desktop" "Downloads" "Pictures" "ctf")
+
+for dir in "$HOME"/* "$HOME"/.*; do
+  name="$(basename "$dir")"
+
+  # saltar . y ..
+  [[ "$name" == "." || "$name" == ".." ]] && continue
+
+  # saltar carpetas a mantener
+  if [[ " ${KEEP_DIRS[*]} " =~ " $name " ]]; then
+    continue
+  fi
+
+  # NO borrar .config (se sobreescribe luego)
+  [[ "$name" == ".config" ]] && continue
+
+  # borrar resto
+  rm -rf "$dir"
+done
+
+# crear carpetas si no existen
+for d in "${KEEP_DIRS[@]}"; do
+  mkdir -p "$HOME/$d"
+done
+
+# =============================================
+# 2. COPIAR HOME DOTFILES
+# =============================================
+echo "[+] Copiando contenido de home/ → \$HOME"
+
+cp -a "$BASE_DIR/home/." "$HOME/"
+
+# =============================================
+# 3. COPIAR CONFIG
+# =============================================
+echo "[+] Copiando config/ → ~/.config"
+
+mkdir -p "$HOME/.config"
+cp -a "$BASE_DIR/config/." "$HOME/.config/"
+
+# =============================================
+# 4. LIGHTDM (REQUIERE SUDO)
+# =============================================
+if [[ -d "$BASE_DIR/lightdm" ]]; then
+  echo "[+] Instalando configuración de LightDM..."
+  sudo mkdir -p /etc/lightdm
+  sudo cp -a "$BASE_DIR/lightdm/." /etc/lightdm/
+fi
+
+# =============================================
+# 5. PAQUETES BASE
+# =============================================
 echo "[+] Actualizando sistema..."
 sudo apt update -y
 
-echo "[+] Instalando dependencias base..."
+echo "[+] Instalando paquetes..."
 sudo apt install -y \
   zsh \
   git \
@@ -23,29 +84,27 @@ sudo apt install -y \
   wget \
   neovim \
   kitty \
-  coreutils \
   bat \
-  eza
+  eza \
+  coreutils
 
-# --------- ZSH DEFAULT ---------
+# =============================================
+# 6. ZSH + OH-MY-ZSH
+# =============================================
 if [[ "$SHELL" != *zsh ]]; then
   echo "[+] Cambiando shell por defecto a zsh..."
   chsh -s "$(which zsh)"
 fi
 
-# --------- OH MY ZSH ---------
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
   echo "[+] Instalando Oh My Zsh..."
   RUNZSH=no CHSH=no sh -c \
     "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-else
-  echo "[✓] Oh My Zsh ya instalado"
 fi
 
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-# --------- PLUGINS ---------
-echo "[+] Instalando plugins de ZSH..."
+echo "[+] Instalando plugins ZSH..."
 
 git clone https://github.com/zsh-users/zsh-autosuggestions \
   "$ZSH_CUSTOM/plugins/zsh-autosuggestions" 2>/dev/null || true
@@ -53,29 +112,21 @@ git clone https://github.com/zsh-users/zsh-autosuggestions \
 git clone https://github.com/zsh-users/zsh-syntax-highlighting \
   "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" 2>/dev/null || true
 
-# --------- ZSHRC ---------
-echo "[+] Configurando .zshrc..."
-
-if ! grep -q "zsh-autosuggestions" ~/.zshrc; then
-  sed -i 's/^plugins=(/plugins=(zsh-autosuggestions zsh-syntax-highlighting /' ~/.zshrc
+# asegurar plugins en .zshrc
+if ! grep -q "zsh-autosuggestions" "$HOME/.zshrc"; then
+  sed -i 's/^plugins=(/plugins=(zsh-autosuggestions zsh-syntax-highlighting /' "$HOME/.zshrc"
 fi
 
-# --------- KITTY ---------
-echo "[+] Configurando Kitty..."
-mkdir -p ~/.config/kitty
+# =============================================
+# 7. PERMISOS
+# =============================================
+chmod -R u+rwX "$HOME"
 
-cat <<EOF > ~/.config/kitty/kitty.conf
-font_family      JetBrains Mono
-font_size        11.5
-enable_audio_bell no
-confirm_os_window_close 0
-background_opacity 0.95
-EOF
-
-# --------- DONE ---------
+# =============================================
+# DONE
+# =============================================
 echo
-echo "================================="
-echo " ✅ Instalación completada"
-echo " 👉 Cierra sesión o ejecuta: zsh"
-echo "================================="
-
+echo "=============================================="
+echo " ✅ Instalación completada correctamente"
+echo " 👉 Reinicia sesión o ejecuta: exec zsh"
+echo "=============================================="
