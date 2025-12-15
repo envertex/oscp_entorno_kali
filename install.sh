@@ -29,7 +29,7 @@ fi
 # =============================================
 echo "[+] Limpiando HOME (manteniendo carpetas clave)..."
 
-KEEP_DIRS=("Desktop" "Downloads" "Pictures" "CTF" "OffSec")
+KEEP_DIRS=("Desktop" "Downloads" "Pictures" "CTF" "OffSec" "vpn")
 
 for dir in "$HOME"/* "$HOME"/.*; do
   name="$(basename "$dir")"
